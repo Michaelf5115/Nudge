@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in — Nudge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080808;
+      --surface:   #111111;
+      --surface2:  #161616;
+      --border:    #222222;
+      --border2:   #2e2e2e;
+      --accent:    #4AFF91;
+      --accent-dim:#0d2b1a;
+      --accent-mid:#1a5c34;
+      --text:      #f0f0f0;
+      --muted:     #777777;
+      --danger:    #ff4a4a;
+      --mono:      'JetBrains Mono', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ─── NAV ─────────────────────────────────────── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--accent);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--muted); }
+
+    .nav-back {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-back:hover { color: var(--text); }
+
+    /* ─── MAIN ────────────────────────────────────── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Background glow */
+    main::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -60%);
+      width: 500px; height: 400px;
+      background: radial-gradient(ellipse, rgba(74,255,145,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ─── CARD ────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-logo {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-mid);
+      padding: 5px 12px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-bottom: 28px;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+      line-height: 1.1;
+    }
+
+    .card-sub {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    /* ─── TABS ────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 9px 16px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+
+    .tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    .tab-icon { font-size: 15px; }
+
+    /* ─── FORM ────────────────────────────────────── */
+    .form-group { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.2px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 15px;
+    }
+
+    input[type="email"],
+    input[type="tel"] {
+      width: 100%;
+      padding: 13px 16px 13px 42px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--accent-mid);
+      box-shadow: 0 0 0 3px rgba(74,255,145,0.08);
+    }
+
+    input::placeholder { color: #444; }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      margin-top: 4px;
+    }
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(74,255,145,0.25);
+    }
+    .btn-submit:active:not(:disabled) { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ─── STATUS MESSAGES ──────────────────────────── */
+    .status-box {
+      display: none;
+      border-radius: 10px;
+      padding: 16px 18px;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-top: 20px;
+    }
+    .status-box.show { display: block; }
+
+    .status-box.success {
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-mid);
+      color: var(--accent);
+    }
+
+    .status-box.error {
+      background: rgba(255,74,74,0.08);
+      border: 1px solid rgba(255,74,74,0.25);
+      color: var(--danger);
+    }
+
+    .status-icon { font-size: 20px; margin-bottom: 6px; display: block; }
+
+    /* ─── HELPER TEXT ──────────────────────────────── */
+    .helper {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 24px;
+      line-height: 1.6;
+    }
+    .helper a { color: var(--muted); text-decoration: underline; transition: color 0.2s; }
+    .helper a:hover { color: var(--text); }
+
+    /* ─── DIVIDER ──────────────────────────────────── */
+    .divider-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .divider-line::before,
+    .divider-line::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ─── FOOTER ───────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 13px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 480px) {
+      nav { padding: 16px 20px; }
+      .card { padding: 36px 24px; border-radius: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">
+    <svg width="22" height="22" viewBox="0 0 17 17" fill="none" style="background:var(--accent);border-radius:6px;padding:3px;flex-shrink:0">
+      <path d="M1.5 3C1.5 2.17 2.17 1.5 3 1.5h11c.83 0 1.5.67 1.5 1.5v8c0 .83-.67 1.5-1.5 1.5H6.5L1.5 15V3z" fill="#000" fill-opacity="0.85"/>
+      <circle cx="5.5" cy="7" r="1.1" fill="#000" fill-opacity="0.85"/>
+      <circle cx="8.5" cy="7" r="1.1" fill="#000" fill-opacity="0.85"/>
+      <circle cx="11.5" cy="7" r="1.1" fill="#000" fill-opacity="0.85"/>
+    </svg>
+    <span style="color:var(--accent)">nudge</span>
+  </a>
+  <a href="/" class="nav-back">← Back to home</a>
+</nav>
+
+<main>
+  <div class="card">
+    <span class="card-logo">// log in</span>
+    <h1>Welcome back.</h1>
+    <p class="card-sub">We'll send you a link — no password needed.</p>
+
+    <!-- Tabs -->
+    <div class="tabs" role="tablist">
+      <button
+        class="tab active"
+        id="tab-email"
+        role="tab"
+        aria-selected="true"
+        onclick="switchTab('email')"
+      >
+        <span class="tab-icon">✉️</span> Email
+      </button>
+      <button
+        class="tab"
+        id="tab-phone"
+        role="tab"
+        aria-selected="false"
+        onclick="switchTab('phone')"
+      >
+        <span class="tab-icon">💬</span> Text me
+      </button>
+    </div>
+
+    <!-- Email panel -->
+    <div id="panel-email">
+      <form id="form-email" onsubmit="handleSubmit(event, 'email')">
+        <div class="form-group">
+          <label for="input-email">Your email address</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉</span>
+            <input
+              type="email"
+              id="input-email"
+              name="email"
+              placeholder="you@company.com"
+              autocomplete="email"
+              required
+            >
+          </div>
+        </div>
+        <button type="submit" class="btn-submit" id="btn-email">Send magic link →</button>
+      </form>
+    </div>
+
+    <!-- Phone panel -->
+    <div id="panel-phone" style="display:none">
+      <form id="form-phone" onsubmit="handleSubmit(event, 'phone')">
+        <div class="form-group">
+          <label for="input-phone">Your phone number</label>
+          <div class="input-wrap">
+            <span class="input-icon">📱</span>
+            <input
+              type="tel"
+              id="input-phone"
+              name="phone"
+              placeholder="+1 (555) 000-0000"
+              autocomplete="tel"
+            >
+          </div>
+        </div>
+        <button type="submit" class="btn-submit" id="btn-phone">Text me a link →</button>
+      </form>
+    </div>
+
+    <!-- Status messages -->
+    <div class="status-box success" id="status-success">
+      <span class="status-icon" id="status-icon">✓</span>
+      <strong id="status-title">Check your email!</strong>
+      <p id="status-body" style="margin-top:4px; opacity:0.85"></p>
+    </div>
+    <div class="status-box error" id="status-error">
+      <span id="status-error-text"></span>
+    </div>
+
+    <div class="helper">
+      Don't have a team yet? <a href="/#waitlist">Join the waitlist →</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="/">← nudge</a> &nbsp;·&nbsp; 2026 Nudge
+</footer>
+
+<script>
+  let activeTab = 'email';
+
+  function switchTab(tab) {
+    activeTab = tab;
+
+    document.getElementById('tab-email').classList.toggle('active', tab === 'email');
+    document.getElementById('tab-phone').classList.toggle('active', tab === 'phone');
+    document.getElementById('tab-email').setAttribute('aria-selected', tab === 'email');
+    document.getElementById('tab-phone').setAttribute('aria-selected', tab === 'phone');
+
+    document.getElementById('panel-email').style.display = tab === 'email' ? '' : 'none';
+    document.getElementById('panel-phone').style.display = tab === 'phone' ? '' : 'none';
+
+    // Hide any existing status
+    document.getElementById('status-success').classList.remove('show');
+    document.getElementById('status-error').classList.remove('show');
+  }
+
+  async function handleSubmit(e, type) {
+    e.preventDefault();
+
+    const successEl = document.getElementById('status-success');
+    const errorEl   = document.getElementById('status-error');
+    const btn       = document.getElementById(`btn-${type}`);
+
+    successEl.classList.remove('show');
+    errorEl.classList.remove('show');
+
+    let payload = {};
+    if (type === 'email') {
+      payload.email = document.getElementById('input-email').value.trim();
+    } else {
+      // Normalise phone — strip formatting
+      const raw = document.getElementById('input-phone').value.trim();
+      const digits = raw.replace(/\D/g, '');
+      payload.phone = digits.startsWith('1') && digits.length === 11
+        ? `+${digits}`
+        : digits.length === 10
+          ? `+1${digits}`
+          : raw; // let server validate
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      // Always show success even if team not found (security — don't leak existence)
+      const method = res.headers.get('X-Auth-Method') || type;
+
+      document.getElementById('status-icon').textContent = method === 'phone' ? '📱' : '✉️';
+      document.getElementById('status-title').textContent =
+        method === 'phone' ? 'Check your texts!' : 'Check your email!';
+      document.getElementById('status-body').textContent =
+        method === 'phone'
+          ? 'We texted you a link. Tap it to open your team dashboard.'
+          : 'We emailed you a secure link. It expires in 24 hours.';
+
+      successEl.classList.add('show');
+
+      // Disable the form
+      e.target.querySelectorAll('input, button').forEach(el => el.disabled = true);
+
+    } catch (err) {
+      document.getElementById('status-error-text').textContent =
+        'Something went wrong. Please try again.';
+      errorEl.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = type === 'email' ? 'Send magic link →' : 'Text me a link →';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nudge — Project management by text</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080808;
+      --surface:   #111111;
+      --surface2:  #161616;
+      --border:    #222222;
+      --accent:    #4AFF91;
+      --accent-dim:#0d2b1a;
+      --accent-mid:#1a5c34;
+      --text:      #f0f0f0;
+      --muted:     #888888;
+      --danger:    #ff4a4a;
+      --mono:      'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ─────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      background: rgba(8,8,8,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s;
+    }
+    nav.scrolled { border-bottom-color: var(--border); }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      text-decoration: none;
+    }
+    .logo-nav-icon {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .logo span { color: var(--accent); }
+
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .btn-nav {
+      padding: 8px 20px;
+      border-radius: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 14px;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-nav:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      color: var(--accent) !important;
+    }
+
+    /* ─── HERO ────────────────────────────────────── */
+
+    /* Dot grid background for the whole hero band */
+    .hero-band {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-band::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, #2a2a2a 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: 0.55;
+      pointer-events: none;
+    }
+    /* Fade the grid out toward the bottom */
+    .hero-band::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 200px;
+      background: linear-gradient(to bottom, transparent, var(--bg));
+      pointer-events: none;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 40px 80px;
+      max-width: 1200px;
+      margin: 0 auto;
+      gap: 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-left { flex: 1; min-width: 0; }
+
+    /* Logo mark above headline */
+    .hero-logo-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .logo-icon {
+      width: 52px; height: 52px;
+      background: var(--accent);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 32px rgba(74,255,145,0.35);
+    }
+
+    .logo-wordmark {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+    .logo-wordmark span { color: var(--accent); }
+    .logo-tagline {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* Social proof chips below CTA */
+    .hero-proof {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+
+    .proof-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .proof-chip-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    /* Floating badges around the phone */
+    .float-badge {
+      position: absolute;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 2;
+    }
+    .float-badge-icon { font-size: 16px; }
+    .float-badge-text { color: var(--muted); line-height: 1.3; }
+    .float-badge-text strong { display: block; color: var(--text); font-size: 13px; }
+
+    .badge-top-left {
+      top: -16px; left: -60px;
+      animation: floatA 4s ease-in-out infinite;
+    }
+    .badge-bottom-right {
+      bottom: 40px; right: -56px;
+      animation: floatB 5s ease-in-out infinite;
+    }
+
+    @keyframes floatA {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-8px); }
+    }
+    @keyframes floatB {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(6px); }
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-mid);
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+      letter-spacing: 0.5px;
+    }
+    .hero-tag::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: blink 1.4s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    h1 {
+      font-size: clamp(44px, 6vw, 76px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -2.5px;
+      margin-bottom: 24px;
+    }
+
+    h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .hero-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      font-size: 15px;
+      border-radius: 8px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(74,255,145,0.3);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 24px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 15px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--text); }
+
+    /* ─── PHONE MOCKUP + SMS THREAD ──────────────── */
+    .hero-right {
+      flex: 0 0 340px;
+      position: relative;
+    }
+
+    .phone-frame {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 32px;
+      padding: 20px;
+      box-shadow:
+        0 0 0 6px #0f0f0f,
+        0 0 0 7px #1a1a1a,
+        0 40px 80px rgba(0,0,0,0.8),
+        0 0 60px rgba(74,255,145,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Notch */
+    .phone-notch {
+      width: 80px;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin: 0 auto 20px;
+    }
+
+    /* SMS app header inside phone */
+    .sms-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .sms-avatar {
+      width: 34px; height: 34px;
+      background: var(--accent-dim);
+      border: 1.5px solid var(--accent-mid);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .sms-contact { line-height: 1.3; }
+    .sms-contact-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .sms-contact-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+    /* Bubble thread */
+    .sms-thread {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      height: 320px;
+      overflow: hidden;
+    }
+
+    .bubble {
+      max-width: 88%;
+      padding: 9px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      font-family: var(--mono);
+    }
+    .bubble.visible { opacity: 1; transform: translateY(0); }
+
+    .bubble.out {
+      align-self: flex-end;
+      background: #2a2a2a;
+      border-bottom-right-radius: 4px;
+      color: var(--text);
+    }
+
+    .bubble.in {
+      align-self: flex-start;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-mid);
+      border-bottom-left-radius: 4px;
+      color: var(--accent);
+    }
+
+    .typing-indicator {
+      align-self: flex-start;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 10px 14px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-mid);
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .typing-indicator.visible { opacity: 1; }
+    .typing-indicator .dot {
+      width: 5px; height: 5px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+    .typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-4px); }
+    }
+
+    /* Glow under phone */
+    .phone-glow {
+      position: absolute;
+      bottom: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 200px; height: 80px;
+      background: radial-gradient(ellipse, rgba(74,255,145,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ─── SECTION BASE ────────────────────────────── */
+    section { padding: 100px 40px; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+
+    .section-tag {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 540px;
+      line-height: 1.7;
+      margin-bottom: 60px;
+    }
+
+    /* ─── HOW IT WORKS ────────────────────────────── */
+    .how-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .step {
+      background: var(--surface);
+      padding: 40px 36px;
+      position: relative;
+    }
+
+    .step-number {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .step-icon {
+      font-size: 32px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .step h3 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+
+    .step p { font-size: 15px; color: var(--muted); line-height: 1.6; }
+
+    .step-example {
+      margin-top: 20px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 10px 14px;
+      border-radius: 8px;
+      border-left: 2px solid var(--accent);
+      line-height: 1.6;
+    }
+
+    /* ─── FEATURES ────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      padding: 40px;
+      transition: background 0.2s;
+    }
+    .feature-card:hover { background: var(--surface2); }
+
+    .feature-icon {
+      width: 44px; height: 44px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-mid);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p { font-size: 15px; color: var(--muted); line-height: 1.6; }
+
+    /* ─── COMMANDS (live demo strip) ─────────────── */
+    .commands-section { overflow: hidden; padding: 60px 0; }
+    .commands-inner { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+
+    .ticker-wrap {
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+      mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    }
+
+    .ticker {
+      display: flex;
+      gap: 16px;
+      animation: ticker 30s linear infinite;
+      width: max-content;
+    }
+    .ticker:hover { animation-play-state: paused; }
+
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    .ticker-item {
+      flex-shrink: 0;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 16px;
+      white-space: nowrap;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .ticker-item:hover { border-color: var(--accent-mid); color: var(--accent); }
+
+    /* ─── PRICING ─────────────────────────────────── */
+    .pricing-section { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+    .pricing-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 56px;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pricing-card::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 300px; height: 200px;
+      background: radial-gradient(ellipse, rgba(74,255,145,0.12) 0%, transparent 70%);
+    }
+
+    .pricing-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-mid);
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      display: inline-block;
+    }
+
+    .pricing-amount {
+      font-size: 72px;
+      font-weight: 800;
+      letter-spacing: -3px;
+      line-height: 1;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .pricing-amount sup { font-size: 32px; font-weight: 600; vertical-align: top; margin-top: 12px; display: inline-block; }
+    .pricing-amount sub { font-size: 20px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+
+    .pricing-desc {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+
+    .pricing-features {
+      list-style: none;
+      text-align: left;
+      margin-bottom: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pricing-features li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .pricing-features li::before {
+      content: '✓';
+      color: var(--accent);
+      font-weight: 700;
+      font-family: var(--mono);
+      flex-shrink: 0;
+    }
+
+    /* ─── WAITLIST ─────────────────────────────────── */
+    .waitlist-section {
+      text-align: center;
+    }
+
+    .waitlist-inner { max-width: 560px; margin: 0 auto; }
+
+    .waitlist-form {
+      display: flex;
+      gap: 12px;
+      margin-top: 40px;
+    }
+
+    .input-email {
+      flex: 1;
+      padding: 14px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-email::placeholder { color: var(--muted); }
+    .input-email:focus { border-color: var(--accent-mid); }
+
+    .waitlist-note {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .waitlist-success {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 16px 24px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-mid);
+      border-radius: 10px;
+      color: var(--accent);
+      font-size: 15px;
+    }
+    .waitlist-success.show { display: flex; }
+
+    .waitlist-error {
+      display: none;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--danger);
+    }
+    .waitlist-error.show { display: block; }
+
+    /* ─── FOOTER ──────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .footer-logo {
+      font-family: var(--mono);
+      font-size: 15px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+    }
+    .footer-links a {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--text); }
+
+    .footer-copy { font-size: 13px; color: var(--muted); }
+
+    /* ─── DIVIDER ─────────────────────────────────── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ─── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 860px) {
+      nav { padding: 16px 20px; }
+      .hero { flex-direction: column; gap: 60px; padding: 100px 20px 60px; }
+      .hero-right { flex: none; width: 100%; max-width: 340px; margin: 0 auto; }
+      section { padding: 70px 20px; }
+      .steps { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .pricing-card { padding: 40px 28px; }
+      footer { flex-direction: column; gap: 20px; text-align: center; padding: 32px 20px; }
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+    }
+
+    @media (max-width: 520px) {
+      .waitlist-form { flex-direction: column; }
+      .hero-actions { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAV ─────────────────────────────────────────── -->
+<nav id="nav">
+  <a href="/" class="logo">
+    <div class="logo-nav-icon">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+        <path d="M1.5 3C1.5 2.17 2.17 1.5 3 1.5h11c.83 0 1.5.67 1.5 1.5v8c0 .83-.67 1.5-1.5 1.5H6.5L1.5 15V3z" fill="#000" fill-opacity="0.85"/>
+        <circle cx="5.5" cy="7" r="1.1" fill="#000" fill-opacity="0.85"/>
+        <circle cx="8.5" cy="7" r="1.1" fill="#000" fill-opacity="0.85"/>
+        <circle cx="11.5" cy="7" r="1.1" fill="#000" fill-opacity="0.85"/>
+      </svg>
+    </div>
+    <span>nudge</span>
+  </a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="login.html" class="btn-nav">Log in →</a>
+  </div>
+</nav>
+
+<!-- ─── HERO ─────────────────────────────────────────── -->
+<div class="hero-band">
+<div class="hero">
+  <div class="hero-left">
+
+    <!-- Logo mark -->
+    <div class="hero-logo-mark">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M4 6C4 4.9 4.9 4 6 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H9l-5 4V6z" fill="#000" fill-opacity="0.9"/>
+          <path d="M9 11h10M9 15h6" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-wordmark"><span>nudge</span></div>
+        <div class="logo-tagline">SMS-first project management</div>
+      </div>
+    </div>
+
+    <div class="hero-tag">Now in early access</div>
+    <h1>Run your team<br>by <em>text.</em></h1>
+    <p class="hero-sub">No app. No onboarding. No dashboards to ignore.<br>Just text a number and your projects manage themselves.</p>
+    <div class="hero-actions">
+      <a href="#waitlist" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 3.5A1.5 1.5 0 013.5 2h9A1.5 1.5 0 0114 3.5v8a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 11.5v-8z" stroke="currentColor" stroke-width="1.4"/><path d="M2 4l6 4 6-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Get early access
+      </a>
+      <a href="#how" class="btn-ghost">See how it works ↓</a>
+    </div>
+
+    <!-- Social proof chips -->
+    <div class="hero-proof">
+      <div class="proof-chip"><div class="proof-chip-dot"></div>No app download</div>
+      <div class="proof-chip"><div class="proof-chip-dot"></div>Works on any phone</div>
+      <div class="proof-chip"><div class="proof-chip-dot"></div>Setup in 2 minutes</div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+
+    <!-- Floating badge — top left -->
+    <div class="float-badge badge-top-left">
+      <span class="float-badge-icon">☀️</span>
+      <div class="float-badge-text">
+        <strong>Morning digest</strong>
+        sent at 8am daily
+      </div>
+    </div>
+
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="sms-header">
+        <div class="sms-avatar">TA</div>
+        <div class="sms-contact">
+          <div class="sms-contact-name">Nudge</div>
+          <div class="sms-contact-sub">+1 (555) 010-1234</div>
+        </div>
+      </div>
+      <div class="sms-thread" id="smsThread">
+        <div class="typing-indicator" id="typingIndicator">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone-glow"></div>
+
+    <!-- Floating badge — bottom right -->
+    <div class="float-badge badge-bottom-right">
+      <span class="float-badge-icon">🧠</span>
+      <div class="float-badge-text">
+        <strong>Powered by Claude AI</strong>
+        understands plain English
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ─── TICKER ────────────────────────────────────────── -->
+<div class="commands-section">
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker">
+      <!-- duplicated for seamless loop, JS fills both halves -->
+    </div>
+  </div>
+</div>
+
+<!-- ─── HOW IT WORKS ──────────────────────────────────── -->
+<section class="how-section" id="how">
+  <div class="section-inner">
+    <div class="section-tag">// How it works</div>
+    <h2>Three steps.<br>That's it.</h2>
+    <p class="section-sub">No setup wizard. No credit card for a trial. Text "setup" and you're running.</p>
+    <div class="steps">
+      <div class="step">
+        <span class="step-number">STEP_01</span>
+        <span class="step-icon">📱</span>
+        <h3>Text "setup"</h3>
+        <p>Text the word "setup" to your team's number. We'll walk you through naming your team and adding members — all over SMS.</p>
+        <div class="step-example">You: setup<br>Nudge: Welcome! What's your team name?</div>
+      </div>
+      <div class="step">
+        <span class="step-number">STEP_02</span>
+        <span class="step-icon">💬</span>
+        <h3>Manage in plain English</h3>
+        <p>Create tasks, assign them, mark things done, check status — all by texting naturally. No commands to memorize.</p>
+        <div class="step-example">You: Add logo design for Jake, due Thursday<br>Nudge: Done — assigned to Jake, due Thu Mar 13.</div>
+      </div>
+      <div class="step">
+        <span class="step-number">STEP_03</span>
+        <span class="step-icon">🔗</span>
+        <h3>Share the dashboard</h3>
+        <p>Text "dashboard" to get a read-only link. Share it with stakeholders. It updates live — no login needed for them.</p>
+        <div class="step-example">You: dashboard<br>Nudge: Your link (24h): usenudge.co/d/a8f2...</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FEATURES ──────────────────────────────────────── -->
+<section>
+  <div class="section-inner">
+    <div class="section-tag">// Features</div>
+    <h2>Everything you need.<br>Nothing you don't.</h2>
+    <p class="section-sub">Built for teams who'd rather ship than sit in standups.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🚫</div>
+        <h3>Zero installs</h3>
+        <p>Your whole team already has SMS. No app to download, no account to create, no password to forget. If you have a phone, you're set.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <h3>Plain English</h3>
+        <p>Powered by Claude AI. Say "finish the homepage" or "what's Sarah working on?" — it understands you, not the other way around.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">☀️</div>
+        <h3>Morning digest</h3>
+        <p>Every morning at 8am, each team member gets a personalized summary of their open tasks, overdue items, and what's due today.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Live dashboard</h3>
+        <p>A clean, read-only web view of everything your team is working on. Grouped by owner, filterable by status. Share it with anyone.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PRICING ───────────────────────────────────────── -->
+<section class="pricing-section" id="pricing">
+  <div class="section-inner">
+    <div class="section-tag">// Pricing</div>
+    <h2 style="text-align:center; margin-bottom: 48px;">Stupidly simple pricing.</h2>
+    <div class="pricing-card">
+      <div class="pricing-badge">Early Access</div>
+      <p style="font-size:20px; font-weight:700; margin-bottom:8px; letter-spacing:-0.5px;">Scales with your team.</p>
+      <p class="pricing-desc">Tiered pricing based on team size — solo founders to larger teams all get the same features. We're finalising the numbers with early users now.</p>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:32px;">
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:16px;">
+          <div style="font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:1px; margin-bottom:8px;">TIER_01</div>
+          <div style="font-size:15px; font-weight:700; margin-bottom:4px;">1–10 people</div>
+          <div style="font-size:13px; color:var(--muted);">Perfect for small teams & startups</div>
+        </div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:16px;">
+          <div style="font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:1px; margin-bottom:8px;">TIER_02</div>
+          <div style="font-size:15px; font-weight:700; margin-bottom:4px;">11–50 people</div>
+          <div style="font-size:13px; color:var(--muted);">Growing teams, same simplicity</div>
+        </div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:16px;">
+          <div style="font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:1px; margin-bottom:8px;">TIER_03</div>
+          <div style="font-size:15px; font-weight:700; margin-bottom:4px;">51–200 people</div>
+          <div style="font-size:13px; color:var(--muted);">Multiple teams, one number each</div>
+        </div>
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:16px;">
+          <div style="font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:1px; margin-bottom:8px;">TIER_04</div>
+          <div style="font-size:15px; font-weight:700; margin-bottom:4px;">200+ people</div>
+          <div style="font-size:13px; color:var(--muted);">Talk to us</div>
+        </div>
+      </div>
+
+      <ul class="pricing-features" style="margin-bottom:32px;">
+        <li>All tiers include every feature — no paywalled features</li>
+        <li>One dedicated SMS number per team</li>
+        <li>Daily morning digests, live dashboard, AI parsing</li>
+      </ul>
+      <a href="#waitlist" class="btn-primary" style="width:100%; justify-content:center; font-size:16px; padding:16px;">
+        Join early access for pricing →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── WAITLIST ──────────────────────────────────────── -->
+<section class="waitlist-section" id="waitlist">
+  <div class="waitlist-inner">
+    <div class="section-tag" style="text-align:center">// Get notified</div>
+    <h2>Be first to text.</h2>
+    <p class="section-sub" style="margin: 0 auto; text-align: center;">
+      We're rolling out to teams one at a time. Drop your email and we'll reach out when your spot is ready.
+    </p>
+    <form class="waitlist-form" id="waitlistForm">
+      <input
+        class="input-email"
+        type="email"
+        name="email"
+        id="waitlistEmail"
+        placeholder="you@company.com"
+        required
+        autocomplete="email"
+      >
+      <button type="submit" class="btn-primary">Notify me</button>
+    </form>
+    <p class="waitlist-note">No spam. We'll only email you when it's your turn.</p>
+    <div class="waitlist-success" id="waitlistSuccess">
+      <span style="font-size:20px">✓</span> You're on the list! We'll be in touch.
+    </div>
+    <div class="waitlist-error" id="waitlistError"></div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────── -->
+<hr class="divider">
+<footer>
+  <div class="footer-logo">nudge</div>
+  <div class="footer-links">
+    <a href="#how">How it works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="login.html">Log in</a>
+  </div>
+  <div class="footer-copy">2026 Nudge — all rights reserved</div>
+</footer>
+
+<script>
+  // ─── NAV scroll state ───────────────────────────────
+  window.addEventListener('scroll', () => {
+    document.getElementById('nav').classList.toggle('scrolled', scrollY > 20);
+  });
+
+  // ─── Ticker commands ───────────────────────────────
+  const commands = [
+    '"Add landing page for Maya, due Monday"',
+    '"My tasks"',
+    '"Mark API integration done"',
+    '"What is Jake working on?"',
+    '"Add design review for Sarah"',
+    '"Assign onboarding copy to Tom"',
+    '"Team tasks"',
+    '"Mark homepage redesign blocked"',
+    '"Add Q1 report for me, due Friday"',
+    '"Dashboard"',
+    '"Mark logo done"',
+    '"Invite +15551234567 as Alex"',
+  ];
+
+  const ticker = document.getElementById('ticker');
+  const allCmds = [...commands, ...commands]; // duplicate for loop
+  allCmds.forEach(cmd => {
+    const el = document.createElement('div');
+    el.className = 'ticker-item';
+    el.textContent = cmd;
+    ticker.appendChild(el);
+  });
+
+  // ─── SMS demo animation ─────────────────────────────
+  const conversation = [
+    { dir: 'out', text: 'Add homepage redesign for Sarah, due Friday' },
+    { dir: 'in',  text: 'Done — "Homepage redesign" assigned to Sarah, due Friday Mar 14.' },
+    { dir: 'out', text: 'My tasks' },
+    { dir: 'in',  text: 'Your open tasks:\n• Homepage redesign (Fri Mar 14)\n• Write Q1 report\n• Client call prep ⚠' },
+    { dir: 'out', text: 'Mark Q1 report done' },
+    { dir: 'in',  text: '✓ Marked "Write Q1 report" as done. Nice work!' },
+  ];
+
+  const thread = document.getElementById('smsThread');
+  const typingEl = document.getElementById('typingIndicator');
+
+  let step = 0;
+
+  function showNextBubble() {
+    if (step >= conversation.length) {
+      // Pause then restart
+      setTimeout(() => {
+        // Fade everything out
+        thread.querySelectorAll('.bubble').forEach(b => {
+          b.style.opacity = '0';
+          b.style.transform = 'translateY(8px)';
+        });
+        setTimeout(() => {
+          thread.querySelectorAll('.bubble').forEach(b => b.remove());
+          step = 0;
+          showNextBubble();
+        }, 600);
+      }, 4000);
+      return;
+    }
+
+    const msg = conversation[step];
+    step++;
+
+    if (msg.dir === 'in') {
+      // Show typing indicator first
+      typingEl.classList.add('visible');
+      setTimeout(() => {
+        typingEl.classList.remove('visible');
+        addBubble(msg);
+      }, 900);
+    } else {
+      addBubble(msg);
+    }
+  }
+
+  function addBubble(msg) {
+    const el = document.createElement('div');
+    el.className = `bubble ${msg.dir}`;
+    el.style.whiteSpace = 'pre-wrap';
+    el.textContent = msg.text;
+
+    // Insert before typing indicator
+    thread.insertBefore(el, typingEl);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => el.classList.add('visible'));
+    });
+
+    // Scroll only within the phone frame, never the page
+    thread.scrollTop = thread.scrollHeight;
+
+    const delay = msg.dir === 'out' ? 1400 : 1800;
+    setTimeout(showNextBubble, delay);
+  }
+
+  // Kick off after a short pause
+  setTimeout(showNextBubble, 800);
+
+  // ─── Waitlist form ──────────────────────────────────
+  document.getElementById('waitlistForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('waitlistEmail').value.trim();
+    const btn = e.target.querySelector('button');
+    const successEl = document.getElementById('waitlistSuccess');
+    const errorEl = document.getElementById('waitlistError');
+
+    btn.textContent = '...';
+    btn.disabled = true;
+    errorEl.classList.remove('show');
+
+    try {
+      const res = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.ok) {
+        e.target.style.display = 'none';
+        successEl.classList.add('show');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Something went wrong');
+      }
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.classList.add('show');
+      btn.textContent = 'Notify me';
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
