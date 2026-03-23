@@ -1,0 +1,30 @@
+# Core
+Django>=4.2,<5.0
+djangorestframework>=3.14.0
+
+# Database
+psycopg2-binary>=2.9.7
+pgvector>=0.2.3
+
+# Auth & CORS
+django-cors-headers>=4.3.0
+
+# Config
+python-decouple>=3.8
+
+# Filtering
+django-filter>=23.3
+
+# AI
+anthropic>=0.18.0
+
+# Async task queue
+celery>=5.3.4
+redis>=5.0.1
+
+# Development utilities
+django-extensions>=3.2.3
+
+# Testing
+pytest>=7.4.0
+pytest-django>=4.7.0
